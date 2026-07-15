@@ -7,6 +7,52 @@
     --color-primary-contrast-offset: #726dff; // to offset Chubb illusion
   }
 
+  /* ---------- custom UI hide / tweaks ---------- */
+
+  // top-left hamburger (main menu) toggle hide — collab button rahega
+  .main-menu-trigger {
+    display: none !important;
+  }
+
+  // top-right sidebar / library toggle icon hide
+  .sidebar-trigger,
+  .default-sidebar-trigger {
+    display: none !important;
+  }
+
+  // toolbar ke neeche "To move canvas..." instruction hide
+  .HintViewer {
+    display: none !important;
+  }
+
+  // bottom-right help "?" hide (shield niche .encrypted-icon me hide hota hai)
+  .help-icon {
+    display: none !important;
+  }
+
+  // collab button: built-in share icon ki jagah users/collab icon
+  .collab-button {
+    font-size: 0; // wide screen pe kabhi "Share" text aaye to wo hide
+
+    svg {
+      display: none; // built-in share icon hide
+    }
+
+    &::before {
+      content: "";
+      display: inline-block;
+      width: 1.25rem;
+      height: 1.25rem;
+      background-color: currentColor;
+      -webkit-mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%229%22%20cy%3D%227%22%20r%3D%224%22%2F%3E%3Cpath%20d%3D%22M3%2021v-2a4%204%200%200%201%204%20-4h4a4%204%200%200%201%204%204v2%22%2F%3E%3Cpath%20d%3D%22M16%203.13a4%204%200%200%201%200%207.75%22%2F%3E%3Cpath%20d%3D%22M21%2021v-2a4%204%200%200%200%20-3%20-3.85%22%2F%3E%3C%2Fsvg%3E")
+        center / contain no-repeat;
+      mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%229%22%20cy%3D%227%22%20r%3D%224%22%2F%3E%3Cpath%20d%3D%22M3%2021v-2a4%204%200%200%201%204%20-4h4a4%204%200%200%201%204%204v2%22%2F%3E%3Cpath%20d%3D%22M16%203.13a4%204%200%200%201%200%207.75%22%2F%3E%3Cpath%20d%3D%22M21%2021v-2a4%204%200%200%200%20-3%20-3.85%22%2F%3E%3C%2Fsvg%3E")
+        center / contain no-repeat;
+    }
+  }
+
+  /* ---------- end custom ---------- */
+
   .footer-center {
     justify-content: flex-end;
     margin-top: auto;
@@ -15,6 +61,8 @@
   }
 
   .encrypted-icon {
+    display: none !important; // bottom-right security shield hide
+
     border-radius: var(--space-factor);
     color: var(--color-primary);
     margin-top: auto;
