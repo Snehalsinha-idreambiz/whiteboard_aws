@@ -99,7 +99,6 @@ import Collab, {
   isOfflineAtom,
 } from "./collab/Collab";
 import { AppFooter } from "./components/AppFooter";
-import { AppWelcomeScreen } from "./components/AppWelcomeScreen";
 import {
   ExportToExcalidrawPlus,
   exportToExcalidrawPlus,
@@ -147,6 +146,12 @@ import { AppSidebar } from "./components/AppSidebar";
 import type { CollabAPI } from "./collab/Collab";
 
 polyfill();
+
+//window.EXCALIDRAW_THROTTLE_RENDER = true;
+try {
+  localStorage.removeItem(STORAGE_KEYS.LOCAL_STORAGE_ELEMENTS);
+  localStorage.removeItem(STORAGE_KEYS.LOCAL_STORAGE_APP_STATE);
+} catch {}
 
 window.EXCALIDRAW_THROTTLE_RENDER = true;
 
@@ -400,9 +405,12 @@ const { editorTheme, setAppTheme } = useHandleAppTheme();
     }, VERSION_TIMEOUT);
   }, []);
 
-  // Default tool = draw/edit (arrow ke bajaye). User baad me switch kar sakta hai.
   useEffect(() => {
-    excalidrawAPI?.setActiveTool({ type: "freedraw" });
+    if (!excalidrawAPI) return;
+    const id = setTimeout(() => {
+      excalidrawAPI.setActiveTool({ type: "freedraw" });
+    }, 300);
+    return () => clearTimeout(id);
   }, [excalidrawAPI]);
 
   const [, setShareDialogState] = useAtom(shareDialogStateAtom);
@@ -984,10 +992,7 @@ const { editorTheme, setAppTheme } = useHandleAppTheme();
             />
           </div>
         )}
-        <AppWelcomeScreen
-          onCollabDialogOpen={onCollabDialogOpen}
-          isCollabEnabled={!isCollabDisabled}
-        />
+       
         <OverwriteConfirmDialog>
           <OverwriteConfirmDialog.Actions.ExportToImage />
           <OverwriteConfirmDialog.Actions.SaveToDisk />
