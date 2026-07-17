@@ -657,30 +657,62 @@ const { editorTheme, setAppTheme } = useHandleAppTheme();
     };
   }, [isCollabDisabled, collabAPI, excalidrawAPI, setLangCode, loadImages]);
 
+// ── Bridge for hosts that embed this app in an <iframe> (e.g. the Angular
+  // web client) and talk to it via postMessage, since cross-origin iframes
+  // can't reach into our DOM/localStorage directly the way a native WebView
+  // (e.g. our Flutter app) can. Harmless no-op when there's no real parent
+  // frame (window.parent === window), so this does not affect the mobile app.
   useEffect(() => {
-    const unloadHandler = (event: BeforeUnloadEvent) => {
-      LocalData.flushSave();
+    if (!excalidrawAPI) return;
 
-      if (
-        excalidrawAPI &&
-        LocalData.fileStorage.shouldPreventUnload(
-          excalidrawAPI.getSceneElements(),
-        )
-      ) {
-        if (import.meta.env.VITE_APP_DISABLE_PREVENT_UNLOAD !== "true") {
-          preventUnload(event);
-        } else {
-          console.warn(
-            "preventing unload disabled (VITE_APP_DISABLE_PREVENT_UNLOAD)",
-          );
+    const handleParentMessage = (event: MessageEvent) => {
+      // TODO: once the Angular app's origin is finalized, restrict this:
+      // if (event.origin !== "https://your-angular-app-origin.com") return;
+
+      if (event.data?.type === "REQUEST_EXPORT") {
+        const elements = excalidrawAPI.getSceneElementsIncludingDeleted();
+        const appState = excalidrawAPI.getAppState();
+        window.parent.postMessage(
+          {
+            type: "EXPORT_RESULT",
+            elements: JSON.stringify(elements),
+            appState: JSON.stringify(appState),
+          },
+          "*",
+        );
+      }
+
+      if (event.data?.type === "LOAD_STATE") {
+        try {
+          const elements = JSON.parse(event.data.elements || "[]");
+          const appState = JSON.parse(event.data.appState || "{}");
+          excalidrawAPI.updateScene({ elements, appState });
+        } catch (e) {
+          console.error("Failed to apply LOAD_STATE", e);
         }
       }
     };
-    window.addEventListener(EVENT.BEFORE_UNLOAD, unloadHandler);
-    return () => {
-      window.removeEventListener(EVENT.BEFORE_UNLOAD, unloadHandler);
-    };
+
+    window.addEventListener("message", handleParentMessage);
+    return () => window.removeEventListener("message", handleParentMessage);
   }, [excalidrawAPI]);
+
+  // Notify an embedding parent frame (Angular web) whenever a live
+  // collaboration room becomes active, so it can persist the room URL.
+  // No-op when there's no real parent frame (mobile WebView case).
+  useEffect(() => {
+    const notifyRoomStarted = () => {
+      if (window.location.hash.includes("room=")) {
+        window.parent.postMessage(
+          { type: "ROOM_STARTED", roomUrl: window.location.href },
+          "*",
+        );
+      }
+    };
+    window.addEventListener("hashchange", notifyRoomStarted);
+    notifyRoomStarted(); // in case already in a room on load
+    return () => window.removeEventListener("hashchange", notifyRoomStarted);
+  }, []);
 
   const onChange = (
     elements: readonly OrderedExcalidrawElement[],
