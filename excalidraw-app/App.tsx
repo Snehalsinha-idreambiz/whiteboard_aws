@@ -693,6 +693,7 @@ const { editorTheme, setAppTheme } = useHandleAppTheme();
       }
     };
 
+  //testing
     window.addEventListener("message", handleParentMessage);
     return () => window.removeEventListener("message", handleParentMessage);
   }, [excalidrawAPI]);
