@@ -97,6 +97,7 @@ import Collab, {
   collabAPIAtom,
   isCollaboratingAtom,
   isOfflineAtom,
+  activeRoomLinkAtom,
 } from "./collab/Collab";
 import { AppFooter } from "./components/AppFooter";
 import {
@@ -414,6 +415,7 @@ const { editorTheme, setAppTheme } = useHandleAppTheme();
 
   const [, setShareDialogState] = useAtom(shareDialogStateAtom);
   const [collabAPI] = useAtom(collabAPIAtom);
+  const activeRoomLink = useAtomValue(activeRoomLinkAtom);
   const [isCollaborating] = useAtomWithInitialValue(isCollaboratingAtom, () => {
     return isCollaborationLink(window.location.href);
   });
@@ -698,22 +700,14 @@ const { editorTheme, setAppTheme } = useHandleAppTheme();
     return () => window.removeEventListener("message", handleParentMessage);
   }, [excalidrawAPI]);
 
-  // Notify an embedding parent frame (Angular web) whenever a live
-  // collaboration room becomes active, so it can persist the room URL.
-  // No-op when there's no real parent frame (mobile WebView case).
   useEffect(() => {
-    const notifyRoomStarted = () => {
-      if (window.location.hash.includes("room=")) {
-        window.parent.postMessage(
-          { type: "ROOM_STARTED", roomUrl: window.location.href },
-          "*",
-        );
-      }
-    };
-    window.addEventListener("hashchange", notifyRoomStarted);
-    notifyRoomStarted(); // in case already in a room on load
-    return () => window.removeEventListener("hashchange", notifyRoomStarted);
-  }, []);
+    if (activeRoomLink) {
+      window.parent.postMessage(
+        { type: "ROOM_STARTED", roomUrl: activeRoomLink },
+        "*",
+      );
+    }
+  }, [activeRoomLink]);
 
   const onChange = (
     elements: readonly OrderedExcalidrawElement[],
